@@ -1,5 +1,9 @@
 #include "device.h"
 
+/////////////////////////////////
+// this is how interfaces and polymorphysm are usually handled in C
+/////////////////////////////////
+
 typedef struct {
     void (*doCommand)(void*);
     void (*undoCommand)(void*);
@@ -8,6 +12,10 @@ typedef struct {
 typedef struct {
    CommandVTable   *vptr;
 } ICommand;
+
+/////////////////////////////////
+// defining wrapper functions
+/////////////////////////////////
 
 static void doCommand(ICommand *c){
     c->vptr->doCommand(c);
@@ -18,7 +26,11 @@ static void undoCommand(ICommand *c){
 
 const static char UNINITIALIZED_PREVIOUS_STATE = -1;
 
+/////////////////////////////////
 // TurnOnCommand
+// concrete "class"
+// first we define fields
+/////////////////////////////////
 
 typedef struct {
     ICommand base;
@@ -26,11 +38,15 @@ typedef struct {
     char previous_state;
 } TurnOnCommand;
 
+/////////////////////////////////
+// here's the "methods"
+/////////////////////////////////
+
 static void doTurnOnCommand(void *command){
     TurnOnCommand *tptr = (TurnOnCommand*)command;
 
-    tptr->previous_state = tptr->reciever->vptr->getState(tptr->reciever);
-    tptr->reciever->vptr->turnOn(tptr->reciever);
+    tptr->previous_state = getStateDevice(tptr->reciever);
+    turnOnDevice(tptr->reciever);
 }
 
 static void undoTurnOnCommand(void *command){
@@ -42,13 +58,22 @@ static void undoTurnOnCommand(void *command){
     }
 
     if(tptr->previous_state){
-        tptr->reciever->vptr->turnOn(tptr->reciever);
+        turnOnDevice(tptr->reciever);
         return;
     }
-    tptr->reciever->vptr->turnOff(tptr->reciever);
+    turnOffDevice(tptr->reciever);
 }
 
+/////////////////////////////////
+// they're put into a vtable
+/////////////////////////////////
+
 static CommandVTable turn_on_command_vtable = {.doCommand = &doTurnOnCommand, .undoCommand = &undoTurnOnCommand};
+
+/////////////////////////////////
+// the vtable of a concrete "class" object is specified here
+// "constructor" of a "class"
+/////////////////////////////////
 
 static void initTurnOnCommand(TurnOnCommand *c, IDevice *reciever){
     c->base.vptr = &turn_on_command_vtable;
@@ -59,7 +84,9 @@ static void initTurnOnCommand(TurnOnCommand *c, IDevice *reciever){
 
 
 
+//////////////////////////////////////
 // TurnOffCommand
+//////////////////////////////////////
 
 typedef struct {
     ICommand base;
@@ -70,8 +97,8 @@ typedef struct {
 static void doTurnOffCommand(void *command){
     TurnOffCommand *tptr = (TurnOffCommand*)command;
 
-    tptr->previous_state = tptr->reciever->vptr->getState(tptr->reciever);
-    tptr->reciever->vptr->turnOff(tptr->reciever);
+    tptr->previous_state = getStateDevice(tptr->reciever);
+    turnOffDevice(tptr->reciever);
 }
 
 static void undoTurnOffCommand(void *command){
@@ -83,10 +110,10 @@ static void undoTurnOffCommand(void *command){
     }
 
     if(tptr->previous_state){
-        tptr->reciever->vptr->turnOn(tptr->reciever);
+        turnOnDevice(tptr->reciever);
         return;
     }
-    tptr->reciever->vptr->turnOff(tptr->reciever);
+    turnOffDevice(tptr->reciever);
 }
 
 static CommandVTable turn_off_command_vtable = {.doCommand = &doTurnOffCommand, .undoCommand = &undoTurnOffCommand};
@@ -97,8 +124,9 @@ static void initTurnOffCommand(TurnOffCommand *c, IDevice *reciever){
     c->previous_state = UNINITIALIZED_PREVIOUS_STATE;
 }
 
-
+//////////////////////////////////////
 // InteractCommand
+//////////////////////////////////////
 
 typedef struct {
     ICommand base;
@@ -108,13 +136,13 @@ typedef struct {
 static void doInteractCommand(void *command){
     InteractCommand *iptr = (InteractCommand*)command;
 
-    iptr->reciever->vptr->interact(iptr->reciever);
+    interactDevice(iptr->reciever);
 }
 
 static void undoInteractCommand(void *command){
     InteractCommand *iptr = (InteractCommand*)command;
 
-    iptr->reciever->vptr->uninteract(iptr->reciever);
+    uninteractDevice(iptr->reciever);
 }
 
 static CommandVTable interact_command_vtable = {.doCommand = &doInteractCommand, .undoCommand = &undoInteractCommand};
@@ -124,7 +152,9 @@ static void initInteractCommand(InteractCommand *c, IDevice *reciever){
     c->reciever = reciever;
 }
 
+//////////////////////////////////////
 // UninteractCommand
+//////////////////////////////////////
 
 typedef struct {
     ICommand base;
@@ -134,13 +164,13 @@ typedef struct {
 static void doUninteractCommand(void *command){
     UninteractCommand *iptr = (UninteractCommand*)command;
 
-    iptr->reciever->vptr->uninteract(iptr->reciever);
+    uninteractDevice(iptr->reciever);
 }
 
 static void undoUninteractCommand(void *command){
     UninteractCommand *iptr = (UninteractCommand*)command;
 
-    iptr->reciever->vptr->interact(iptr->reciever);
+    interactDevice(iptr->reciever);
 }
 
 static CommandVTable uninteract_command_vtable = {.doCommand = &doUninteractCommand, .undoCommand = &undoUninteractCommand};
@@ -150,8 +180,9 @@ static void initUninteractCommand(UninteractCommand *c, IDevice *reciever){
     c->reciever = reciever;
 }
 
+//////////////////////////////////////
 // MacroCommand
-
+//////////////////////////////////////
 
 typedef struct {
     ICommand base;

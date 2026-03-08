@@ -1,4 +1,5 @@
 #include "command/command_client_code.h"
+#include "template_method/template_method_client_code.h"
 
 // можете просто запустить.ехе и убедиться что оно живое.
 int main(){
@@ -17,6 +18,9 @@ OTHER - QUIT\n");
         switch (reply) {
             case 1:
                 doCommandClientCode();
+                break;
+            case 2:
+                doTemplateMethodClientCode();
                 break;
             default:
                 printf("OKAY BYE.\n");

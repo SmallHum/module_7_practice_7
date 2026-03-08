@@ -15,7 +15,6 @@ static void doCommandClientCode(){
 
 
 
-
     TurnOnCommand turn_on_lamp;
     initTurnOnCommand(&turn_on_lamp, (IDevice*)&lamp);
 
@@ -109,6 +108,7 @@ static void doCommandClientCode(){
 
     doRemoteControlCommand(&remote_control, (ICommand*)&conditioner_macro_command);
     undoRemoteControlCommand(&remote_control);
+
 
 
     freeRemoteControl(&remote_control);

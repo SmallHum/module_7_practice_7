@@ -7,6 +7,10 @@
 //  0    0  0  0     0 0    0    0     0
 // 0000  000   0000  00    0000   000  0000
 
+// /////////////////////////////////
+// this is how interfaces and polymorphysm are usually handled in C
+/////////////////////////////////
+
 typedef struct{
     void (*turnOn)(void*);
     void (*turnOff)(void*);
@@ -18,6 +22,10 @@ typedef struct{
 typedef struct{
     DeviceVTable *vptr;
 } IDevice;
+
+/////////////////////////////////
+// defining wrapper functions
+/////////////////////////////////
 
 static void turnOnDevice(IDevice *d){
     d->vptr->turnOn(d);
@@ -35,7 +43,7 @@ static void uninteractDevice(IDevice *d){
     d->vptr->uninteract(d);
 }
 
-static char getState(IDevice *d){
+static char getStateDevice(IDevice *d){
     return d->vptr->getState(d);
 }
 
@@ -44,12 +52,20 @@ static char getState(IDevice *d){
 // 0     0   0  0 0 0 0  0000
 // 0     00000  0  0  0  0
 // 0000  0   0  0  0  0  0
+//
+// concrete "class"
+// first we define fields
+/////////////////////////////////
 
 typedef struct{
     IDevice base;
     // ВСМЫСЛЕ В С НЕТ БУЛОВ
     char state;
 } Lamp;
+
+/////////////////////////////////
+// here's the "methods"
+/////////////////////////////////
 
 static void turnOnLamp(void* lamp){
     Lamp *lptr = (Lamp*)lamp;
@@ -98,6 +114,10 @@ static char getLampState(void *lamp){
     return lptr->state;
 }
 
+/////////////////////////////////
+// they're put into a vtable
+/////////////////////////////////
+
 static DeviceVTable lamp_vtable = {
     .turnOn = &turnOnLamp,
     .turnOff = &turnOffLamp,
@@ -105,6 +125,11 @@ static DeviceVTable lamp_vtable = {
     .uninteract = &uninteractLamp,
     .getState = &getLampState
 };
+
+/////////////////////////////////
+// the vtable of a concrete "class" object is specified here
+// "constructor" of a "class"
+/////////////////////////////////
 
 static void initLamp(Lamp *lamp){
     lamp->base.vptr = &lamp_vtable;
