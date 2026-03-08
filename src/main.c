@@ -1,5 +1,6 @@
 #include "command/command_client_code.h"
 #include "template_method/template_method_client_code.h"
+#include "mediator/mediator_client_code.h"
 
 // можете просто запустить.ехе и убедиться что оно живое.
 int main(){
@@ -21,6 +22,9 @@ OTHER - QUIT\n");
                 break;
             case 2:
                 doTemplateMethodClientCode();
+                break;
+            case 3:
+                doMediatorClientCode();
                 break;
             default:
                 printf("OKAY BYE.\n");
